@@ -137,13 +137,31 @@
             background-color: rgba(0,0,0,0.5);
             border: 1px solid #ffffff; /* White border */
             border-radius: 5px;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             animation: slideIn 0.5s ease-out;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
         }
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(-20px); }
             to { opacity: 1; transform: translateX(0); }
+        }
+        .result-line {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .result-line a {
+            color: #ffffff;
+            text-decoration: none;
+            text-shadow: 0 0 3px #ffffff;
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+        .result-line a:hover {
+            color: #cccccc;
+            text-shadow: 0 0 10px #ffffff;
         }
         footer {
             text-align: center;
@@ -261,10 +279,30 @@
                 });
                 
                 if (subdomains.size > 0) {
-                    resultsDiv.innerHTML = '<h3>Subdomain Ditemukan:</h3><ul>' + 
-                        Array.from(subdomains).map(sub => `<li>${sub}</li>`).join('') + '</ul>';
+                    const subdomainArray = Array.from(subdomains);
+                    
+                    // Proses setiap subdomain secara paralel
+                    const promises = subdomainArray.map(async (sub) => {
+                        let ip = 'Tidak ditemukan';
+                        
+                        // Resolve IP menggunakan Google DNS over HTTPS
+                        try {
+                            const dnsResponse = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(sub)}&type=A`);
+                            const dnsData = await dnsResponse.json();
+                            if (dnsData.Answer && dnsData.Answer.length > 0) {
+                                ip = dnsData.Answer[0].data;
+                            }
+                        } catch (error) {
+                            console.error(`Error resolving IP for ${sub}:`, error);
+                        }
+                        
+                        return `<div class="result-line"><a href="http://${sub}" target="_blank">${sub}</a> ${ip}</div>`;
+                    });
+                    
+                    const results = await Promise.all(promises);
+                    resultsDiv.innerHTML = results.join('');
                 } else {
-                    resultsDiv.innerHTML = '<p>Tidak ada subdomain ditemukan.</p>';
+                    resultsDiv.innerHTML = '<p>Tidak ada subdomain.</p>';
                 }
             } catch (error) {
                 resultsDiv.innerHTML = '<p>Terjadi kesalahan saat mencari. Coba lagi nanti.</p>';
