@@ -283,7 +283,7 @@
                     
                     // Proses setiap subdomain secara paralel
                     const promises = subdomainArray.map(async (sub) => {
-                        let ip = 'Tidak ditemukan';
+                        let ip = 'Tidak Ditemukan';
                         
                         // Resolve IP menggunakan Google DNS over HTTPS
                         try {
@@ -296,7 +296,7 @@
                             console.error(`Error resolving IP for ${sub}:`, error);
                         }
                         
-                        return `<div class="result-line"><a href="http://${sub}" target="_blank">${sub}</a> ${ip}</div>`;
+                        return `<div class="result-line"><a href="http://${sub}" target="_blank">${sub}</a> | ${ip}</div>`;
                     });
                     
                     const results = await Promise.all(promises);
